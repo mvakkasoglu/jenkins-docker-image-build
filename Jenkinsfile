@@ -25,33 +25,44 @@ pipeline {
 			steps {
 				script {
 					dir('./jenkins-docker-image-build') {
-						sh 'docker image build -t $DOCKER_HUB_REPO:latest .'
-						sh 'docker image tag $DOCKER_HUB_REPO:latest $DOCKER_HUB_REPO:$BUILD_NUMBER'
+				// 		sh '/usr/local/bin/docker image build -t $DOCKER_HUB_REPO:latest .'
+						sh '/usr/local/bin/docker image tag $DOCKER_HUB_REPO:latest $DOCKER_HUB_REPO:$BUILD_NUMBER'
 					} 
 				}
 			}
 		}
 		stage('Push docker image') {
 		    steps {
-			      script {
-				        dir('./jenkins-docker-image-build') {
-				            docker.withRegistry( '', REGISTRY_CREDENTIAL ) {
-				                sh 'docker push vakkasoglu/capstone-project:$BUILD_NUMBER'
-				                sh 'docker push vakkasoglu/capstone-project:latest'
-			                }
-					      }
+			    script {
+			        dir('./jenkins-docker-image-build') {
+				        docker.withRegistry( '', REGISTRY_CREDENTIAL ) {
+				            sh '/usr/local/bin/docker push vakkasoglu/capstone-project:$BUILD_NUMBER'
+				            // sh '/usr/local/bin/docker push vakkasoglu/capstone-project:latest'
+				    
+				        }
 				    }
-			  }
+				}
+			}
 		}
-		// stage('Deploy to kubernetes') {
-		// 	steps {
-		// 		script {
-		// 			sh 'kubectl apply -f kubernetes.yaml'
-        //             sh 'kubectl get service/capstone-project-service'
-        //             sh 'minikube service capstone-project-service'
-		// 		}
-		// 	}
-		// }
-        // tcp://192.168.99.100:2376 Docker host
+		stage('Deploy to kubernetes') {
+			steps {
+			    dir('./jenkins-docker-image-build') {
+				    script {
+					    sh 'kubectl apply -f kubernetes.yaml'
+                        sh 'kubectl get service/capstone-project-service'
+				    }
+				}
+			}
+		}
+		stage('Minikube service') {
+		    steps {
+		        dir('./jenkins-docker-image-build') {
+				    script {
+		          //    sh 'minikube service capstone-project-service'
+		                sh 'echo "Application deployed" '
+					}
+		        }
+		    }
+		}
 	}
 }
