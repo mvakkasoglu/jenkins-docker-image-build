@@ -1,0 +1,35 @@
+apiVersion: apps/v1 #version of kubernetes api
+kind: Deployment #kind of the file...it can be services, pods, secrets configmap
+metadata: 
+  name: sba-kubernetes-cluster-deployment #name of my app. for microservice structure this is the name of the microservice
+spec:
+  selector:
+    matchLabels:
+      app: sba-kubernetes-cluster
+  replicas: 2 #tells deployment to run 3 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: sba-kubernetes-cluster
+    spec:
+      containers:
+      - name: sba-kubernetes-cluster-container # '-' indicates array
+        image: vakkasoglu/sba-kubernetes-cluster
+        ports:
+        - containerPort: 5000 # it maps the port 8888 inside the container
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/#defining-a-service
+ # service maps the pods into one IP address
+apiVersion: v1
+kind: Service
+metadata:
+  name: sba-kubernetes-cluster-service #name of the service
+spec:
+  type: NodePort
+  selector:
+    app: sba-kubernetes-cluster
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 31001
